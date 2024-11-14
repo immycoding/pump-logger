@@ -10,7 +10,7 @@ form.addEventListener("submit", (e) => {
         weight: form.weight.value,
     };
 
-    fetch("https://script.google.com/macros/s/AKfycbz27wpoNqE-4VCfRhIQrsiPiU1dFsrjGDz2oOIZhwdSZywufyqw7v4E7SXvVsOYjl18SA/exec", {
+    fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
