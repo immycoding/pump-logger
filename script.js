@@ -1,9 +1,11 @@
 const form = document.getElementById("workoutForm");
+const API_KEY = "noscammerspls";
 
 form.addEventListener("submit", (e) => {
     e.preventDefault();
 
     const data = {
+        apiKey: API_KEY,
         exercise: form.exercise.value,
         sets: form.sets.value,
         reps: form.reps.value,
