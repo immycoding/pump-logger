@@ -2,6 +2,7 @@
     "name": "pump logger",
     "short_name": "pumps",
     "start_url": "/<pump-logger>/index.html",
+    "scope": "/<pump-logger>/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#4CAF50",
