@@ -1,39 +1,38 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
+    padding: 20px;
 }
+
 form {
     margin: 20px auto;
     max-width: 300px;
 }
+
 input {
     margin: 10px 0;
     padding: 8px;
     width: 100%;
 }
+
 button {
-    margin: 20px; /* Add spacing around buttons */
-    padding: 20px 40px; /* Make the buttons larger */
-    font-size: 20px; /* Increase text size */
+    margin: 20px;
+    padding: 20px 40px;
+    font-size: 20px;
     border: none;
-    background-color: #4CAF50; /* Button color */
+    background-color: #4CAF50;
     color: white;
-    border-radius: 10px; /* Rounded corners */
+    border-radius: 10px;
     cursor: pointer;
-    display: block; /* Make buttons full-width or stack */
-    width: 200px; /* Set a fixed width for consistency */
-    text-align: center; /* Center the text */
+    display: block;
+    width: 200px;
+    text-align: center;
 }
 
 button:hover {
-    background-color: #45a049; /* Slightly darker color on hover */
+    background-color: #45a049;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-}
 select, input {
     margin: 10px 0;
     padding: 10px;
