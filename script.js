@@ -1,8 +1,8 @@
 const muscleGroups = {
-    chestBack: ["Bench Press", "Pull-Ups", "Incline Dumbbell Press", "Barbell Rows"],
-    legs: ["Squats", "Lunges", "Leg Press", "Deadlifts"],
-    shoulders: ["Overhead Press", "Lateral Raises", "Arnold Press", "Face Pulls"],
-    arms: ["Bicep Curls", "Tricep Pushdowns", "Hammer Curls", "Dips"]
+    chestBack: ["flat bench", "pulldown", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
+    legs: ["skwaat", "lung", "leg press", "RDL", "hack", "ham curl", "calf?", "leg extension"],
+    shoulders: ["OHP", "lateral raise", "db press", "uptight hoes", "rear delt"],
+    arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher"]
 };
 
 function selectWorkout(group) {
