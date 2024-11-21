@@ -12,33 +12,28 @@ input {
     width: 100%;
 }
 button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
+    margin: 20px; /* Add spacing around buttons */
+    padding: 20px 40px; /* Make the buttons larger */
+    font-size: 20px; /* Increase text size */
     border: none;
+    background-color: #4CAF50; /* Button color */
+    color: white;
+    border-radius: 10px; /* Rounded corners */
     cursor: pointer;
+    display: block; /* Make buttons full-width or stack */
+    width: 200px; /* Set a fixed width for consistency */
+    text-align: center; /* Center the text */
 }
+
+button:hover {
+    background-color: #45a049; /* Slightly darker color on hover */
+}
+
 body {
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
 }
-
-button {
-    margin: 10px;
-    padding: 15px 25px;
-    font-size: 16px;
-    border: none;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
 select, input {
     margin: 10px 0;
     padding: 10px;
