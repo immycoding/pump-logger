@@ -54,4 +54,19 @@ if (form) {
             .then((data) => alert("Workout saved!"))
             .catch((error) => console.error("Error:", error));
     });
-}
+}document.getElementById("exercise-dropdown").addEventListener("change", async function () {
+    const exercise = this.value;
+    if (!exercise) return;
+
+    // Fetch the last workout from the backend
+    const response = await fetch(`https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec?exercise=${encodeURIComponent(exercise)}`);
+    const data = await response.json();
+
+    const lastWorkoutDiv = document.getElementById("last-workout");
+    if (data.message) {
+        lastWorkoutDiv.textContent = `No data found for ${exercise}`;
+    } else {
+        lastWorkoutDiv.textContent = `Last did ${data.exercise}: ${data.weight} lbs, ${data.sets} sets of ${data.reps} on ${data.date}`;
+    }
+});
+
