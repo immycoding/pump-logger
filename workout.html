@@ -8,11 +8,16 @@
 </head>
 <body>
     <h1 id="workout-header">Workout</h1>
+
+    <!-- Combined Form -->
     <form id="workoutForm">
         <label for="exercise">Select Exercise:</label>
         <select id="exercise-dropdown" name="exercise">
             <!-- Options will be added dynamically -->
         </select><br>
+
+        <!-- Div to show last workout -->
+        <div id="last-workout" style="margin-top: 20px; font-size: 16px; color: #555;"></div>
 
         <label for="sets">Sets:</label>
         <input type="number" id="sets" name="sets" required><br>
@@ -25,26 +30,7 @@
 
         <button type="submit">Log Workout</button>
     </form>
-    <form id="workoutForm">
-        <label for="exercise">Select Exercise:</label>
-        <select id="exercise-dropdown" name="exercise">
-            <!-- Options will be added dynamically -->
-        </select><br>
-    
-        <div id="last-workout" style="margin-top: 20px; font-size: 16px; color: #555;"></div> <!-- New -->
-        
-        <label for="sets">Sets:</label>
-        <input type="number" id="sets" name="sets" required><br>
-    
-        <label for="reps">Reps:</label>
-        <input type="number" id="reps" name="reps" required><br>
-    
-        <label for="weight">Weight (lbs):</label>
-        <input type="number" id="weight" name="weight" required><br>
-    
-        <button type="submit">Log Workout</button>
-    </form>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
