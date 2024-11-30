@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
 
+            // Clear the dropdown to avoid duplicate options
+            dropdownElement.innerHTML = "";
+
             // Add a default "Choose exercise" option
             const defaultOption = document.createElement("option");
             defaultOption.value = "";
@@ -41,10 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = exercise;
                 dropdownElement.appendChild(option);
             });
-        }
 
-        // Attach change listener to dropdown
-        if (dropdownElement) {
+            // Attach change listener to dropdown
             dropdownElement.addEventListener("change", async function () {
                 const exercise = this.value;
                 if (!exercise) return;
@@ -109,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 mode: "no-cors"
             })
-                .then((response) => response.text())
                 .then(() => alert("Workout saved!"))
                 .catch((error) => console.error("Error:", error));
         });
