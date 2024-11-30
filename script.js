@@ -42,9 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 dropdownElement.appendChild(option);
             });
         }
-    }
-});
-
 
         // Attach change listener to dropdown
         if (dropdownElement) {
@@ -89,35 +86,32 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
-})
+
     // Handle form submission
-const form = document.getElementById("workoutForm");
-const API_KEY = "noscammerspls";
+    const form = document.getElementById("workoutForm");
+    const API_KEY = "noscammerspls";
 
-if (form) {
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
+    if (form) {
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-        const data = {
-            apiKey: API_KEY,
-            exercise: form.exercise.value,
-            sets: form.sets.value,
-            reps: form.reps.value,
-            weight: form.weight.value,
-        };
+            const data = {
+                apiKey: API_KEY,
+                exercise: form.exercise.value,
+                sets: form.sets.value,
+                reps: form.reps.value,
+                weight: form.weight.value,
+            };
 
-        fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
-            method: "POST",
-            body: JSON.stringify(data),
-            headers: { "Content-Type": "application/json" },
-            mode: "no-cors"
-        })
-            .then((response) => response.text())
-            .then((data) => alert("Workout saved!"))
-            .catch((error) => console.error("Error:", error));
-    });
-}
-
-
-
-
+            fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: { "Content-Type": "application/json" },
+                mode: "no-cors"
+            })
+                .then((response) => response.text())
+                .then(() => alert("Workout saved!"))
+                .catch((error) => console.error("Error:", error));
+        });
+    }
+});
