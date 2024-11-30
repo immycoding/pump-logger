@@ -31,10 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Add a default "Choose exercise" option
             const defaultOption = document.createElement("option");
-            defaultOption.value = "";
+            defaultOption.value = ""; // Ensure no value is selected
             defaultOption.textContent = "Choose exercise";
             defaultOption.disabled = true;
-            defaultOption.selected = true;
+            defaultOption.selected = true; // Start with this option selected
             dropdownElement.appendChild(defaultOption);
 
             // Add exercises to the dropdown
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const API_KEY = "noscammerspls";
 
     if (form) {
-        form.addEventListener("submit", (e) => {
+        form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const data = {
@@ -104,14 +104,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 weight: form.weight.value,
             };
 
-            fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" },
-                mode: "no-cors"
-            })
-                .then(() => alert("Workout saved!"))
-                .catch((error) => console.error("Error:", error));
+            try {
+                await fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                    headers: { "Content-Type": "application/json" },
+                    mode: "no-cors"
+                });
+
+                alert("Workout saved!");
+
+                // Clear the form fields
+                form.reset();
+
+                // Reset the dropdown menu to "Choose exercise"
+                const dropdownElement = document.getElementById("exercise-dropdown");
+                if (dropdownElement) {
+                    dropdownElement.value = ""; // Reset dropdown to the default value
+                }
+
+                // Ensure the first option is selected explicitly
+                const defaultOption = dropdownElement.querySelector("option[value='']");
+                if (defaultOption) {
+                    defaultOption.selected = true;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to save workout. Please try again.");
+            }
         });
     }
 });
