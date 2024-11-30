@@ -94,13 +94,18 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fetch("https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec", {
-                mode: 'no-cors',
                 method: "POST",
                 body: JSON.stringify(data),
                 headers: { "Content-Type": "application/json" }
             })
                 .then((response) => response.text())
-                .then((data) => alert("Workout saved!"))
+                .then((data) => {
+                    if (data === "Success") {
+                        alert("Workout saved!");
+                    } else {
+                        console.error("Error from server:", data);
+                    }
+                })
                 .catch((error) => console.error("Error:", error));
         });
     }
