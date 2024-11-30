@@ -25,12 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
-            exercises.forEach((exercise) => {
-                const option = document.createElement("option");
-                option.value = exercise;
-                option.textContent = exercise;
-                dropdownElement.appendChild(option);
-            });
+            // Add a default "Choose exercise" option
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Choose exercise";
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    dropdownElement.appendChild(defaultOption);
+
+    // Add exercises to the dropdown
+    exercises.forEach((exercise) => {
+        const option = document.createElement("option");
+        option.value = exercise;
+        option.textContent = exercise;
+        dropdownElement.appendChild(option);
+    });
         }
 
         // Attach change listener to dropdown
