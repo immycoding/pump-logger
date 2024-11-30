@@ -5,11 +5,23 @@ const muscleGroups = {
     arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher"]
 };
 
+// Move the selectWorkout function outside of DOMContentLoaded
+function selectWorkout(group) {
+    // Save the selected group in localStorage to pass data to the next page
+    localStorage.setItem("selectedGroup", group);
+
+    // Navigate to the workout page
+    window.location.href = "workout.html";
+}
+
+// Attach selectWorkout to the global window object
+window.selectWorkout = selectWorkout;
+
 document.addEventListener("DOMContentLoaded", () => {
     // Populate dropdown on workout page
     if (window.location.pathname.endsWith("workout.html")) {
         const selectedGroup = localStorage.getItem("selectedGroup");
-        const dropdownElement = document.getElementById("exercise-dropdown"); // Renamed to dropdownElement
+        const dropdownElement = document.getElementById("exercise-dropdown");
 
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
@@ -69,5 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
 
 
