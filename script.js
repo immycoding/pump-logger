@@ -39,19 +39,28 @@ document.addEventListener("DOMContentLoaded", () => {
             dropdownElement.addEventListener("change", async function () {
                 const exercise = this.value;
                 if (!exercise) return;
-
+            
+                console.log(`Fetching data for exercise: ${exercise}`); // Log selected exercise
+            
                 const response = await fetch(`https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec?exercise=${encodeURIComponent(exercise)}`);
                 const rawResponse = await response.text();
-                console.log(rawResponse); // Debug raw response
-                const data = JSON.parse(rawResponse);
-
-                const lastWorkoutDiv = document.getElementById("last-workout");
-                if (data.message) {
-                    lastWorkoutDiv.textContent = `No data found for ${exercise}`;
-                } else {
-                    lastWorkoutDiv.textContent = `Last did ${data.exercise}: ${data.weight} lbs, ${data.sets} sets of ${data.reps} on ${data.date}`;
+                console.log("Raw response from server:", rawResponse);
+            
+                try {
+                    const data = JSON.parse(rawResponse); // Parse JSON response
+                    console.log("Parsed response:", data);
+            
+                    const lastWorkoutDiv = document.getElementById("last-workout");
+                    if (data.message) {
+                        lastWorkoutDiv.textContent = `No data found for ${exercise}`;
+                    } else {
+                        lastWorkoutDiv.textContent = `Last did ${data.exercise}: ${data.weight} lbs, ${data.sets} sets of ${data.reps} on ${data.date}`;
+                    }
+                } catch (error) {
+                    console.error("Error parsing response:", error);
                 }
             });
+            
         }
     }
 
