@@ -31,10 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Add a default "Choose exercise" option
             const defaultOption = document.createElement("option");
-            defaultOption.value = ""; // Ensure no value is selected
+            defaultOption.value = "";
             defaultOption.textContent = "Choose exercise";
             defaultOption.disabled = true;
-            defaultOption.selected = true; // Start with this option selected
+            defaultOption.selected = true;
             dropdownElement.appendChild(defaultOption);
 
             // Add exercises to the dropdown
