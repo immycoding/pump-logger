@@ -1,3 +1,22 @@
+const muscleGroups = {
+    chestBack: ["flat bench", "pulldown", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
+    legs: ["skwaat", "lung", "leg press", "RDL", "hack", "ham curl", "calf?", "leg extension"],
+    shoulders: ["OHP", "lateral raise", "db press", "uptight hoes", "rear delt"],
+    arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher"]
+};
+
+// Move the selectWorkout function outside of DOMContentLoaded
+function selectWorkout(group) {
+    console.log(`Button clicked: ${group}`); // Debug log
+    localStorage.setItem("selectedGroup", group);
+    window.location.href = "workout.html";
+}
+
+// Attach the function to the global scope
+window.selectWorkout = selectWorkout;
+
+console.log("selectWorkout is now globally accessible");
+
 document.addEventListener("DOMContentLoaded", () => {
     // Populate dropdown on workout page
     if (window.location.pathname.endsWith("workout.html")) {
@@ -76,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-    
+
             const data = {
                 apiKey: API_KEY,
                 exercise: form.exercise.value,
@@ -84,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 reps: form.reps.value,
                 weight: form.weight.value,
             };
-    
+
             try {
                 await fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
                     method: "POST",
@@ -92,27 +111,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "Content-Type": "application/json" },
                     mode: "no-cors"
                 });
-    
+
                 alert("Workout saved!");
-    
+
                 // Clear the form fields
                 form.reset();
 
-                // Ensure the dropdown resets to "Choose exercise"
+                // Reset the dropdown menu to "Choose exercise"
                 const dropdownElement = document.getElementById("exercise-dropdown");
                 if (dropdownElement) {
                     dropdownElement.value = ""; // Reset dropdown to the default value
+                }
 
-                    // Alternatively, re-select the first option explicitly
-                    const defaultOption = dropdownElement.querySelector("option[value='']");
-                    if (defaultOption) {
-                        defaultOption.selected = true;
-                    }
+                // Ensure the first option is selected explicitly
+                const defaultOption = dropdownElement.querySelector("option[value='']");
+                if (defaultOption) {
+                    defaultOption.selected = true;
                 }
             } catch (error) {
                 console.error("Error:", error);
                 alert("Failed to save workout. Please try again.");
             }
         });
-    }    
+    }
 });
