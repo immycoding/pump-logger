@@ -1,22 +1,3 @@
-const muscleGroups = {
-    chestBack: ["flat bench", "pulldown", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
-    legs: ["skwaat", "lung", "leg press", "RDL", "hack", "ham curl", "calf?", "leg extension"],
-    shoulders: ["OHP", "lateral raise", "db press", "uptight hoes", "rear delt"],
-    arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher"]
-};
-
-// Move the selectWorkout function outside of DOMContentLoaded
-function selectWorkout(group) {
-    console.log(`Button clicked: ${group}`); // Debug log
-    localStorage.setItem("selectedGroup", group);
-    window.location.href = "workout.html";
-}
-
-// Attach the function to the global scope
-window.selectWorkout = selectWorkout;
-
-console.log("selectWorkout is now globally accessible");
-
 document.addEventListener("DOMContentLoaded", () => {
     // Populate dropdown on workout page
     if (window.location.pathname.endsWith("workout.html")) {
@@ -116,11 +97,17 @@ document.addEventListener("DOMContentLoaded", () => {
     
                 // Clear the form fields
                 form.reset();
-    
-                // Reset the dropdown menu to "Choose exercise"
+
+                // Ensure the dropdown resets to "Choose exercise"
                 const dropdownElement = document.getElementById("exercise-dropdown");
                 if (dropdownElement) {
-                    dropdownElement.value = ""; // Reset dropdown to default value
+                    dropdownElement.value = ""; // Reset dropdown to the default value
+
+                    // Alternatively, re-select the first option explicitly
+                    const defaultOption = dropdownElement.querySelector("option[value='']");
+                    if (defaultOption) {
+                        defaultOption.selected = true;
+                    }
                 }
             } catch (error) {
                 console.error("Error:", error);
