@@ -7,15 +7,16 @@ const muscleGroups = {
 
 // Move the selectWorkout function outside of DOMContentLoaded
 function selectWorkout(group) {
-    // Save the selected group in localStorage to pass data to the next page
+    console.log(`Button clicked: ${group}`); // Debug log
     localStorage.setItem("selectedGroup", group);
-
-    // Navigate to the workout page
     window.location.href = "workout.html";
 }
 
-// Attach selectWorkout to the global window object
+// Attach the function to the global scope
 window.selectWorkout = selectWorkout;
+
+console.log("selectWorkout is now globally accessible");
+
 
 document.addEventListener("DOMContentLoaded", () => {
     // Populate dropdown on workout page
