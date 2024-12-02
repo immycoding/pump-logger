@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.location.pathname.endsWith("workout.html")) {
         const selectedGroup = localStorage.getItem("selectedGroup");
         const dropdownElement = document.getElementById("exercise-dropdown");
+        console.log("Selected Group from localStorage:", selectedGroup);
+        console.log("Muscle Groups:", muscleGroups);
 
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
@@ -64,7 +66,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     try {
-                        const data = JSON.parse(rawResponse); // Parse JSON response
+                        let data;
+                    try {
+                     data = JSON.parse(rawResponse);
+                            } catch (e) {
+                         console.error("Invalid JSON from API:", rawResponse);
+                         lastWorkoutDiv.textContent = "Error fetching workout data.";
+                        return;
+                        }
                         console.log("Parsed response:", data);
 
                         if (data.message) {
