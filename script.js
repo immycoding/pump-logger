@@ -18,6 +18,14 @@ window.selectWorkout = selectWorkout;
 console.log("selectWorkout is now globally accessible");
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.endsWith("workout.html")) {
+        const selectedGroup = localStorage.getItem("selectedGroup");
+        const workoutHeader = document.getElementById("workout-header");
+
+        if (selectedGroup && workoutHeader) {
+            workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim(); // Format "chestBack" to "Chest Back"
+        }
+    }
     // Populate dropdown on workout page
     if (window.location.pathname.endsWith("workout.html")) {
         const selectedGroup = localStorage.getItem("selectedGroup");
