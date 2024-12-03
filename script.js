@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const workoutHeader = document.getElementById("workout-header");
 
         if (selectedGroup && workoutHeader) {
-            workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim(); // Format "chestBack" to "Chest Back"
+            workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim().toLowerCase(); // Format "chestBack" to "Chest Back"
         }
     }
     // Populate dropdown on workout page
