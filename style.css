@@ -1,40 +1,103 @@
+/* General Body Styling */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif; /* Modern font for sleek appearance */
+    background-color: #f5f5f5; /* Soft neutral background */
+    color: #333; /* Standard dark text color for contrast */
     text-align: center;
     padding: 20px;
+    margin: 0;
 }
 
+/* Form Container */
 form {
     margin: 20px auto;
-    max-width: 300px;
+    max-width: 90%; /* Allow flexibility for smaller screens */
+    background: white;
+    padding: 20px;
+    border-radius: 12px; /* Rounded corners for modern design */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    text-align: left; /* Align form content neatly */
 }
 
-input {
+/* Input and Select Fields */
+select, input {
     margin: 10px 0;
-    padding: 8px;
-    width: 100%;
+    padding: 12px;
+    width: 100%; /* Full-width for easy tapping */
+    font-size: 16px;
+    border: 1px solid #ccc; /* Subtle border for clean look */
+    border-radius: 8px; /* Rounded edges for a modern feel */
+    box-sizing: border-box; /* Prevent overflow issues */
 }
 
+input:focus, select:focus {
+    border-color: #007AFF; /* iOS blue for focus state */
+    outline: none;
+    box-shadow: 0 0 4px rgba(0, 122, 255, 0.5); /* Glow effect for focus */
+}
+
+/* Button Styling */
 button {
-    margin: 20px;
-    padding: 20px 40px;
-    font-size: 20px;
+    margin: 20px 0;
+    padding: 15px 0;
+    font-size: 18px;
     border: none;
-    background-color: #4CAF50;
+    background-color: #007AFF; /* iOS-friendly blue */
     color: white;
-    border-radius: 10px;
+    border-radius: 8px; /* Rounded corners */
     cursor: pointer;
-    display: block;
-    width: 200px;
-    text-align: center;
+    width: 100%; /* Full-width for mobile ease of use */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #005BB5; /* Slightly darker blue for hover state */
+    transform: translateY(-2px); /* Lift effect */
 }
 
-select, input {
-    margin: 10px 0;
-    padding: 10px;
+button:active {
+    background-color: #004A93; /* Even darker blue for active state */
+    transform: translateY(1px); /* Subtle press-down effect */
+}
+
+/* Last Workout Section */
+#last-workout {
     font-size: 16px;
+    color: #666; /* Neutral gray for secondary info */
+    margin-top: 10px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* Header Styling */
+#workout-header {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007AFF; /* Consistent with button color */
+    margin-bottom: 20px;
+    text-transform: capitalize; /* Make headers look polished */
+}
+
+/* Media Query for Smaller Screens */
+@media (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    button {
+        font-size: 16px;
+    }
+
+    input, select {
+        font-size: 14px;
+    }
+
+    #workout-header {
+        font-size: 22px;
+    }
 }
