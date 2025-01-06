@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim().toLowerCase(); // Format "chestBack" to "Chest Back"
         }
     }
+
     // Populate dropdown on workout page
     if (window.location.pathname.endsWith("workout.html")) {
         const selectedGroup = localStorage.getItem("selectedGroup");
@@ -60,34 +61,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 const exercise = this.value;
                 if (!exercise) return;
 
-                console.log(`Fetching data for exercise: ${exercise}`); // Log selected exercise
+                const lastWorkoutDiv = document.getElementById("last-workout");
+                if (!lastWorkoutDiv) {
+                    console.error("Error: #last-workout div not found in DOM");
+                    return;
+                }
+
+                // Show loading message
+                lastWorkoutDiv.textContent = "Loading...";
 
                 try {
                     const response = await fetch(`https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec?exercise=${encodeURIComponent(exercise)}`);
                     const rawResponse = await response.text();
-                    console.log("Raw response from server:", rawResponse);
-
-                    const lastWorkoutDiv = document.getElementById("last-workout");
-                    if (!lastWorkoutDiv) {
-                        console.error("Error: #last-workout div not found in DOM");
-                        return;
-                    }
 
                     try {
-                        let data;
-                    try {
-                     data = JSON.parse(rawResponse);
-                            } catch (e) {
-                         console.error("Invalid JSON from API:", rawResponse);
-                         lastWorkoutDiv.textContent = "Error fetching workout data.";
-                        return;
-                        }
-                        console.log("Parsed response:", data);
+                        let data = JSON.parse(rawResponse);
 
                         if (data.message) {
                             lastWorkoutDiv.textContent = `No data found for ${exercise}`;
                         } else {
-                            // Format the date as MM-DD-YYYY
                             const formattedDate = new Date(data.date).toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
@@ -95,11 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
                             lastWorkoutDiv.textContent = `Last did ${data.exercise}: ${data.weight} lbs, ${data.sets} sets of ${data.reps} on ${formattedDate}`;
                         }
-                    } catch (error) {
-                        console.error("Error parsing JSON:", error, rawResponse);
+                    } catch (e) {
+                        console.error("Invalid JSON from API:", rawResponse);
+                        lastWorkoutDiv.textContent = "Error fetching workout data.";
                     }
                 } catch (error) {
                     console.error("Error fetching data:", error);
+                    lastWorkoutDiv.textContent = "Error fetching workout data.";
                 }
             });
         }
@@ -112,6 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
+
+            const submitButton = form.querySelector("button[type='submit']");
+            submitButton.disabled = true; // Disable the button
+            submitButton.textContent = "Saving..."; // Update button text
 
             const data = {
                 apiKey: API_KEY,
@@ -148,6 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
                 console.error("Error:", error);
                 alert("Failed to save workout. Please try again.");
+            } finally {
+                // Re-enable the button and reset its text
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit";
             }
         });
     }
