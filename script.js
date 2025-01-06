@@ -5,17 +5,14 @@ const muscleGroups = {
     arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher", "concentration curl", "hammer curl"]
 };
 
-// Move the selectWorkout function outside of DOMContentLoaded
+// Function to select a workout group and navigate
 function selectWorkout(group) {
     console.log(`Button clicked: ${group}`); // Debug log
     localStorage.setItem("selectedGroup", group);
     window.location.href = "workout.html";
 }
 
-// Attach the function to the global scope
-window.selectWorkout = selectWorkout;
-
-console.log("selectWorkout is now globally accessible");
+window.selectWorkout = selectWorkout; // Make the function globally accessible
 
 document.addEventListener("DOMContentLoaded", () => {
     if (window.location.pathname.endsWith("workout.html")) {
@@ -27,36 +24,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Populate dropdown on workout page
+    // Populate dropdown with exercises
     if (window.location.pathname.endsWith("workout.html")) {
         const selectedGroup = localStorage.getItem("selectedGroup");
         const dropdownElement = document.getElementById("exercise-dropdown");
-        console.log("Selected Group from localStorage:", selectedGroup);
-        console.log("Muscle Groups:", muscleGroups);
 
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
 
-            // Clear the dropdown to avoid duplicate options
+            // Clear existing options
             dropdownElement.innerHTML = "";
 
             // Add a default "Choose exercise" option
             const defaultOption = document.createElement("option");
-            defaultOption.value = ""; // Ensure no value is selected
+            defaultOption.value = "";
             defaultOption.textContent = "Choose exercise";
             defaultOption.disabled = true;
-            defaultOption.selected = true; // Start with this option selected
+            defaultOption.selected = true;
             dropdownElement.appendChild(defaultOption);
 
-            // Add exercises to the dropdown
-            exercises.forEach((exercise) => {
+            // Populate dropdown with exercises
+            exercises.forEach(exercise => {
                 const option = document.createElement("option");
                 option.value = exercise;
                 option.textContent = exercise;
                 dropdownElement.appendChild(option);
             });
 
-            // Attach change listener to dropdown
+            // Fetch last workout data for selected exercise
             dropdownElement.addEventListener("change", async function () {
                 const exercise = this.value;
                 if (!exercise) return;
@@ -67,15 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // Show loading message
+                // Display loading message
                 lastWorkoutDiv.textContent = "Loading...";
 
                 try {
-                    const response = await fetch(`https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec?exercise=${encodeURIComponent(exercise)}`);
+                    const response = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?exercise=${encodeURIComponent(exercise)}`);
                     const rawResponse = await response.text();
 
                     try {
-                        let data = JSON.parse(rawResponse);
+                        const data = JSON.parse(rawResponse);
 
                         if (data.message) {
                             lastWorkoutDiv.textContent = `No data found for ${exercise}`;
@@ -102,20 +97,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle form submission
     const form = document.getElementById("workoutForm");
     const API_KEY = "noscammerspls";
-    let lastWeight = null; // Default weight tracker
-    let lastExercise = null; // Default exercise tracker
+    let lastWeight = null;
 
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const submitButton = form.querySelector("button[type='submit']");
-            submitButton.disabled = true; // Disable the button
-            submitButton.textContent = "Saving..."; // Update button text
+            submitButton.disabled = true;
+            submitButton.textContent = "Saving...";
 
-            const exercise = form.exercise.value || lastExercise;
+            const exercise = form.exercise.value;
             const reps = form.reps.value;
-            const weight = form.weight.value || lastWeight; // Use last weight if not specified
+            const weight = form.weight.value || lastWeight;
 
             if (!exercise || !reps || !weight) {
                 alert("Please fill out all fields.");
@@ -126,14 +120,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = {
                 apiKey: API_KEY,
-                exercise: exercise,
-                reps: reps,
-                weight: weight,
+                exercise,
+                reps,
+                weight,
                 date: new Date().toISOString()
             };
 
             try {
-                await fetch("https://script.google.com/macros/s/AKfycbwwz4uIaESy-WYhYVPuabcdGn9OYN1ek6FGIU0DLZ7ATp218sULf4RIqSUjVS6_0mewCA/exec", {
+                await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: { "Content-Type": "application/json" },
@@ -142,16 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 alert("Set logged!");
 
-                // Update last weight and exercise
+                // Update last weight and reset fields
                 lastWeight = weight;
-                lastExercise = exercise;
-
-                // Clear the reps field for the next set
-                form.reps.value = "";
-
-                // Keep the weight and exercise fields pre-filled
-                form.weight.value = lastWeight;
-                form.exercise.value = lastExercise;
+                form.reps.value = ""; // Clear reps field
+                form.weight.value = lastWeight; // Retain weight
             } catch (error) {
                 console.error("Error:", error);
                 alert("Failed to log set. Please try again.");
