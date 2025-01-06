@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 month: "2-digit",
                                 day: "2-digit"
                             });
-                            lastWorkoutDiv.textContent = `Last did ${data.exercise}: ${data.weight} lbs, ${data.sets} sets of ${data.reps} on ${formattedDate}`;
+                            lastWorkoutDiv.textContent = `Last did ${exercise}: ${data.sets}`;
                         }
                     } catch (e) {
                         console.error("Invalid JSON from API:", rawResponse);
@@ -102,6 +102,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle form submission
     const form = document.getElementById("workoutForm");
     const API_KEY = "noscammerspls";
+    let lastWeight = null; // Default weight tracker
+    let lastExercise = null; // Default exercise tracker
 
     if (form) {
         form.addEventListener("submit", async (e) => {
@@ -111,12 +113,23 @@ document.addEventListener("DOMContentLoaded", () => {
             submitButton.disabled = true; // Disable the button
             submitButton.textContent = "Saving..."; // Update button text
 
+            const exercise = form.exercise.value || lastExercise;
+            const reps = form.reps.value;
+            const weight = form.weight.value || lastWeight; // Use last weight if not specified
+
+            if (!exercise || !reps || !weight) {
+                alert("Please fill out all fields.");
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit";
+                return;
+            }
+
             const data = {
                 apiKey: API_KEY,
-                exercise: form.exercise.value,
-                sets: form.sets.value,
-                reps: form.reps.value,
-                weight: form.weight.value,
+                exercise: exercise,
+                reps: reps,
+                weight: weight,
+                date: new Date().toISOString()
             };
 
             try {
@@ -127,31 +140,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     mode: "no-cors"
                 });
 
-                alert("Workout saved!");
+                alert("Set logged!");
 
-                // Clear the form fields
-                form.reset();
+                // Update last weight and exercise
+                lastWeight = weight;
+                lastExercise = exercise;
 
-                // Reset the dropdown menu to "Choose exercise"
-                const dropdownElement = document.getElementById("exercise-dropdown");
-                if (dropdownElement) {
-                    dropdownElement.value = ""; // Reset dropdown to the default value
-                }
+                // Clear the reps field for the next set
+                form.reps.value = "";
 
-                // Ensure the first option is selected explicitly
-                const defaultOption = dropdownElement.querySelector("option[value='']");
-                if (defaultOption) {
-                    defaultOption.selected = true;
-                }
+                // Keep the weight and exercise fields pre-filled
+                form.weight.value = lastWeight;
+                form.exercise.value = lastExercise;
             } catch (error) {
                 console.error("Error:", error);
-                alert("Failed to save workout. Please try again.");
+                alert("Failed to log set. Please try again.");
             } finally {
-                // Re-enable the button and reset its text
                 submitButton.disabled = false;
                 submitButton.textContent = "Submit";
             }
         });
     }
 });
-
