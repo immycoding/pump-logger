@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastWorkoutDiv.textContent = "Loading...";
 
                 try {
-                    const response = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?exercise=${encodeURIComponent(exercise)}`);
+                    const response = await fetch(`https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec?exercise=${encodeURIComponent(exercise)}`);
                     const rawResponse = await response.text();
 
                     try {
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             try {
-                await fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
+                await fetch("https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: { "Content-Type": "application/json" },
