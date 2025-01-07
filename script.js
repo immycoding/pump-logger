@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec",
                     {
                         method: "POST",
+                        mode: "no-cors",
                         body: JSON.stringify(data),
                         headers: { "Content-Type": "application/json" }
                     }
