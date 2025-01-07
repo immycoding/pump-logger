@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 lastWorkoutDiv.textContent = "Loading...";
 
                 try {
-                    const response = await fetch(`https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec?exercise=${encodeURIComponent(exercise)}`);
+                    const response = await fetch(`https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec?exercise=${encodeURIComponent(exercise)}`);
                     const rawResponse = await response.text();
 
                     try {
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             try {
-                await fetch("https://script.google.com/macros/s/AKfycbxwOFdrVaUiADl-yOo0fPNSHr-dyfUVayxo3rwtmM2ujfwDuVzCUdsGrtihfuBrw32JAw/exec", {
+                await fetch("https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec", {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: { "Content-Type": "application/json" }
