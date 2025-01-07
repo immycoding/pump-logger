@@ -65,13 +65,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     const response = await fetch(
                         `https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec?exercise=${encodeURIComponent(exercise)}`
                     );
-                    const data = await response.json();
 
-                    if (data.error) {
-                        lastWorkoutDiv.textContent = `No data found for ${exercise}`;
-                    } else {
+                    const rawResponse = await response.text();
+                    console.log("Raw API Response:", rawResponse);
+
+                    try {
+                        const data = JSON.parse(rawResponse);
+                        console.log("Parsed Data:", data);
+
                         const { date, sets } = data;
-                        lastWorkoutDiv.textContent = `Last did ${exercise} on ${date}: ${sets}`;
+                        if (date && sets) {
+                            lastWorkoutDiv.textContent = `Last did ${exercise} on ${date}: ${sets}`;
+                        } else {
+                            console.error("Invalid data format:", data);
+                            lastWorkoutDiv.textContent = `Error: No valid data found for ${exercise}.`;
+                        }
+                    } catch (e) {
+                        console.error("Invalid JSON from API:", rawResponse);
+                        lastWorkoutDiv.textContent = "Error parsing workout data.";
                     }
                 } catch (error) {
                     console.error("Error fetching data:", error);
