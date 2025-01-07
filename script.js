@@ -1,5 +1,5 @@
 const muscleGroups = {
-    chestBack: ["flat bench", "incline smith", "flat smith", "close pulldown", "chindown", "normal pulldown","incline flyes", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
+    chestBack: ["flat bench", "incline smith", "flat smith", "close pulldown", "chindown", "normal pulldown", "incline flyes", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
     legs: ["skwaat", "lung", "leg press", "RDL", "hack", "ham curl", "calf?", "leg extension", "deadlift", "bulgarian"],
     shoulders: ["OHP", "lateral raise", "db press", "uptight hoes", "rear delt"],
     arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher", "concentration curl", "hammer curl"]
@@ -7,12 +7,12 @@ const muscleGroups = {
 
 // Function to select a workout group and navigate
 function selectWorkout(group) {
-    console.log(`Button clicked: ${group}`); // Debug log
+    console.log(`Button clicked: ${group}`);
     localStorage.setItem("selectedGroup", group);
     window.location.href = "workout.html";
 }
 
-window.selectWorkout = selectWorkout; // Make the function globally accessible
+window.selectWorkout = selectWorkout;
 
 document.addEventListener("DOMContentLoaded", () => {
     if (window.location.pathname.endsWith("workout.html")) {
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const workoutHeader = document.getElementById("workout-header");
 
         if (selectedGroup && workoutHeader) {
-            workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim().toLowerCase(); // Format "chestBack" to "Chest Back"
+            workoutHeader.textContent = selectedGroup.replace(/([A-Z])/g, " $1").trim().toLowerCase();
         }
     }
 
@@ -31,11 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (selectedGroup && muscleGroups[selectedGroup]) {
             const exercises = muscleGroups[selectedGroup];
+            dropdownElement.innerHTML = ""; // Clear existing options
 
-            // Clear existing options
-            dropdownElement.innerHTML = "";
-
-            // Add a default "Choose exercise" option
+            // Add a default option
             const defaultOption = document.createElement("option");
             defaultOption.value = "";
             defaultOption.textContent = "Choose exercise";
@@ -43,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
             defaultOption.selected = true;
             dropdownElement.appendChild(defaultOption);
 
-            // Populate dropdown with exercises
             exercises.forEach(exercise => {
                 const option = document.createElement("option");
                 option.value = exercise;
@@ -62,24 +59,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // Display loading message
                 lastWorkoutDiv.textContent = "Loading...";
 
                 try {
-                    const response = await fetch(`https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec?exercise=${encodeURIComponent(exercise)}`);
-                    const rawResponse = await response.text();
+                    const response = await fetch(
+                        `https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec?exercise=${encodeURIComponent(exercise)}`
+                    );
+                    const data = await response.json();
 
-                    try {
-                        const data = JSON.parse(rawResponse);
-
-                        if (data.message) {
-                            lastWorkoutDiv.textContent = `No data found for ${exercise}`;
-                        } else {
-                            lastWorkoutDiv.textContent = `Last did ${exercise} on ${data.date}: ${data.sets}`;
-                        }
-                    } catch (e) {
-                        console.error("Invalid JSON from API:", rawResponse);
-                        lastWorkoutDiv.textContent = "Error fetching workout data.";
+                    if (data.error) {
+                        lastWorkoutDiv.textContent = `No data found for ${exercise}`;
+                    } else {
+                        const { date, sets } = data;
+                        lastWorkoutDiv.textContent = `Last did ${exercise} on ${date}: ${sets}`;
                     }
                 } catch (error) {
                     console.error("Error fetching data:", error);
@@ -122,16 +114,18 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             try {
-                await fetch("https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec", {
-                    method: "POST",
-                    body: JSON.stringify(data),
-                    headers: { "Content-Type": "application/json" }
-                });
+                await fetch(
+                    "https://script.google.com/macros/s/AKfycbx-Wj-Tr6aYBAYyDdKpTcL9po84fqTBlmdY3plEelfGOJPZgL148N7kYeEOUHeyiYZrUA/exec",
+                    {
+                        method: "POST",
+                        body: JSON.stringify(data),
+                        headers: { "Content-Type": "application/json" }
+                    }
+                );
 
                 alert("Set logged!");
 
-                // Update last weight and reset fields
-                lastWeight = weight;
+                lastWeight = weight; // Retain weight for convenience
                 form.reps.value = ""; // Clear reps field
                 form.weight.value = lastWeight; // Retain weight
             } catch (error) {
