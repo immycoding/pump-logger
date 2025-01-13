@@ -2,7 +2,7 @@ const muscleGroups = {
     chestBack: ["flat bench", "incline smith", "flat smith", "close pulldown", "chindown", "normal pulldown", "incline flyes", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
     legs: ["skwaat", "lung", "leg press", "RDL", "hack", "ham curl", "calf?", "leg extension", "deadlift", "bulgarian"],
     shoulders: ["OHP", "lateral raise", "db press", "uptight hoes", "rear delt"],
-    arms: ["db curl", "pushdown", "bb curl", "overhead extension", "JM press", "skullcrusher", "concentration curl", "hammer curl"]
+    arms: ["db curl", "pushdown", "cable curl", "bb curl", "overhead extension", "JM press", "skullcrusher", "concentration curl", "hammer curl"]
 };
 
 // Function to select a workout group and navigate
