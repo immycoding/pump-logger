@@ -5,7 +5,7 @@
     "scope": "/pump-logger/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#4CAF50",
+    "theme_color": "#111111",
     "icons": [
         {
             "src": "icon-192.png.jpg",
