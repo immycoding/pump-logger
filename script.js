@@ -3,6 +3,8 @@ const API_KEY = "noscammerspls";
 const SELECTED_GROUP_KEY = "selectedGroup";
 const RECENT_EXERCISES_KEY = "recentExercisesByGroup";
 const LAST_SET_KEY = "lastSetByExercise";
+const SET_HISTORY_KEY = "setHistoryByExercise";
+const PERFORMANCE_LIMIT = 3;
 
 const muscleGroups = {
     chestBack: ["flat bench", "incline smith", "flat smith", "close pulldown", "chindown", "normal pulldown", "incline flyes", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
@@ -58,6 +60,18 @@ function getLastLocalSet(exercise) {
     return readJSON(LAST_SET_KEY, {})[exercise];
 }
 
+function rememberLoggedSet(exercise, set) {
+    const historyByExercise = readJSON(SET_HISTORY_KEY, {});
+    const current = Array.isArray(historyByExercise[exercise]) ? historyByExercise[exercise] : [];
+    historyByExercise[exercise] = [...current, set].slice(-200);
+    writeJSON(SET_HISTORY_KEY, historyByExercise);
+    rememberSet(exercise, set);
+}
+
+function getLocalSets(exercise) {
+    return readJSON(SET_HISTORY_KEY, {})[exercise] ?? [];
+}
+
 function buildExerciseList(group) {
     const exercises = muscleGroups[group] ?? [];
     const recent = getRecentExercises(group).filter(exercise => exercises.includes(exercise));
@@ -76,6 +90,162 @@ function setLastWorkout(message, state = "idle") {
     if (!lastWorkout) return;
     lastWorkout.textContent = message;
     lastWorkout.dataset.state = state;
+}
+
+function getDateKey(dateValue) {
+    const date = dateValue ? new Date(dateValue) : new Date();
+    if (Number.isNaN(date.getTime())) return String(dateValue);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(dateKey) {
+    const todayKey = getDateKey(new Date());
+    if (dateKey === todayKey) return "Today";
+
+    const date = new Date(`${dateKey}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return dateKey;
+
+    return new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+    }).format(date);
+}
+
+function normalizeSet(set, index = 0) {
+    if (typeof set === "string") {
+        return { summary: set, order: index };
+    }
+
+    if (!set || typeof set !== "object") {
+        return { summary: String(set), order: index };
+    }
+
+    const weight = set.weight ?? set.Weight;
+    const reps = set.reps ?? set.Reps;
+    const loggedAt = set.date ?? set.loggedAt ?? set.timestamp ?? set.Timestamp;
+    const order = Number(set.order ?? set.setNumber ?? set.Set ?? index);
+
+    return {
+        weight,
+        reps,
+        loggedAt,
+        order: Number.isFinite(order) ? order : index,
+        summary: weight !== undefined && reps !== undefined
+            ? `${weight} lb x ${reps}`
+            : set.summary ?? set.sets ?? String(set)
+    };
+}
+
+function normalizePerformance(performance, index = 0) {
+    const date = performance?.date ?? performance?.Date ?? performance?.loggedAt ?? performance?.timestamp;
+    const sets = performance?.sets ?? performance?.Sets ?? performance?.entries ?? performance?.setList;
+
+    if (!date && !sets) return null;
+
+    return {
+        dateKey: getDateKey(date),
+        date,
+        order: index,
+        sets: Array.isArray(sets) ? sets.map(normalizeSet) : [normalizeSet(sets ?? performance, index)]
+    };
+}
+
+function normalizeBackendPerformances(data) {
+    const candidates = Array.isArray(data)
+        ? data
+        : data?.performances ?? data?.history ?? data?.workouts ?? data?.entries ?? data?.rows;
+
+    if (Array.isArray(candidates)) {
+        const grouped = new Map();
+
+        candidates.forEach((item, index) => {
+            const performance = normalizePerformance(item, index);
+            if (performance && item?.sets !== undefined) {
+                grouped.set(performance.dateKey, performance);
+                return;
+            }
+
+            const date = item?.date ?? item?.Date ?? item?.loggedAt ?? item?.timestamp;
+            const dateKey = getDateKey(date);
+            const set = normalizeSet(item, index);
+            const current = grouped.get(dateKey) ?? { dateKey, date, order: index, sets: [] };
+            current.sets.push(set);
+            grouped.set(dateKey, current);
+        });
+
+        return Array.from(grouped.values());
+    }
+
+    const single = normalizePerformance(data, 0);
+    return single ? [single] : [];
+}
+
+function getLocalPerformances(exercise) {
+    const grouped = new Map();
+
+    getLocalSets(exercise).forEach((set, index) => {
+        const dateKey = getDateKey(set.date ?? set.loggedAt);
+        const current = grouped.get(dateKey) ?? { dateKey, date: set.date, order: index, sets: [] };
+        current.sets.push(normalizeSet(set, index));
+        grouped.set(dateKey, current);
+    });
+
+    return Array.from(grouped.values());
+}
+
+function mergePerformances(backendPerformances, localPerformances) {
+    const todayKey = getDateKey(new Date());
+    const grouped = new Map();
+
+    backendPerformances.forEach(performance => {
+        grouped.set(performance.dateKey, { ...performance, sets: [...performance.sets] });
+    });
+
+    localPerformances.forEach(performance => {
+        const existing = grouped.get(performance.dateKey);
+
+        if (!existing || performance.dateKey === todayKey) {
+            grouped.set(performance.dateKey, { ...performance, sets: [...performance.sets] });
+            return;
+        }
+
+        existing.sets.push(...performance.sets);
+    });
+
+    return Array.from(grouped.values())
+        .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
+        .slice(0, PERFORMANCE_LIMIT)
+        .map(performance => ({
+            ...performance,
+            sets: performance.sets.sort((a, b) => {
+                const aTime = a.loggedAt ? new Date(a.loggedAt).getTime() : NaN;
+                const bTime = b.loggedAt ? new Date(b.loggedAt).getTime() : NaN;
+
+                if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+                    return aTime - bTime;
+                }
+
+                return a.order - b.order;
+            })
+        }));
+}
+
+function formatPerformances(exercise, performances) {
+    if (!performances.length) {
+        return `No recent performance for ${exercise}.`;
+    }
+
+    const lines = performances.map(performance => {
+        const setSummary = performance.sets.map(set => set.summary).join(", ");
+        return `${formatDateLabel(performance.dateKey)}: ${setSummary}`;
+    });
+
+    return `Last ${performances.length} for ${exercise}:\n${lines.join("\n")}`;
 }
 
 function populateExercises(group, selectedExercise = "") {
@@ -100,18 +270,25 @@ async function fetchLastWorkout(exercise) {
     }
 
     const localSet = getLastLocalSet(exercise);
-    const fallbackText = localSet
-        ? `Last local set: ${localSet.weight} lb x ${localSet.reps}`
-        : `No recent local set for ${exercise}.`;
+    const localPerformances = getLocalPerformances(exercise);
+    const localSummary = mergePerformances([], localPerformances);
+    let fallbackText = `No recent local set for ${exercise}.`;
 
-    setLastWorkout("Fetching last performance...", "loading");
+    if (localSummary.length) {
+        fallbackText = formatPerformances(exercise, localSummary);
+    } else if (localSet) {
+        fallbackText = `Last local set: ${localSet.weight} lb x ${localSet.reps}`;
+    }
+
+    setLastWorkout("Fetching recent performances...", "loading");
 
     try {
-        const response = await fetch(`${API_URL}?exercise=${encodeURIComponent(exercise)}`);
+        const response = await fetch(`${API_URL}?exercise=${encodeURIComponent(exercise)}&limit=${PERFORMANCE_LIMIT}`);
         const data = await response.json();
+        const performances = mergePerformances(normalizeBackendPerformances(data), localPerformances);
 
-        if (data?.date && data?.sets) {
-            setLastWorkout(`Last did ${exercise} on ${data.date}: ${data.sets}`, "ready");
+        if (performances.length) {
+            setLastWorkout(formatPerformances(exercise, performances), "ready");
             return;
         }
 
@@ -188,9 +365,10 @@ function wireWorkoutPage() {
             });
 
             rememberExercise(selectedGroup, exercise);
-            rememberSet(exercise, { reps, weight, date: loggedAt, group: selectedGroup });
+            rememberLoggedSet(exercise, { reps, weight, date: loggedAt, group: selectedGroup });
             populateExercises(selectedGroup, exercise);
             setStatus(`Logged ${weight} lb x ${reps}.`, "success");
+            fetchLastWorkout(exercise);
         } catch (error) {
             console.error("Error logging workout:", error);
             setStatus("Failed to log set. Try again.", "error");
