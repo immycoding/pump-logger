@@ -4,7 +4,7 @@ const SELECTED_GROUP_KEY = "selectedGroup";
 const RECENT_EXERCISES_KEY = "recentExercisesByGroup";
 const LAST_SET_KEY = "lastSetByExercise";
 const SET_HISTORY_KEY = "setHistoryByExercise";
-const PERFORMANCE_LIMIT = 3;
+const HISTORY_LIMIT = 3;
 
 const muscleGroups = {
     chestBack: ["flat bench", "incline smith", "flat smith", "close pulldown", "chindown", "normal pulldown", "incline flyes", "incline bench", "bb row", "db row", "db bench", "cable row", "db incline", "high row"],
@@ -92,6 +92,13 @@ function setLastWorkout(message, state = "idle") {
     lastWorkout.dataset.state = state;
 }
 
+function setLastWorkoutNode(node, state = "ready") {
+    const lastWorkout = document.getElementById("last-workout");
+    if (!lastWorkout) return;
+    lastWorkout.replaceChildren(node);
+    lastWorkout.dataset.state = state;
+}
+
 function getDateKey(dateValue) {
     const date = dateValue ? new Date(dateValue) : new Date();
     if (Number.isNaN(date.getTime())) return String(dateValue);
@@ -102,23 +109,68 @@ function getDateKey(dateValue) {
     return `${year}-${month}-${day}`;
 }
 
-function formatDateLabel(dateKey) {
-    const todayKey = getDateKey(new Date());
-    if (dateKey === todayKey) return "Today";
+function getOrdinal(day) {
+    const lastTwo = day % 100;
+    if (lastTwo >= 11 && lastTwo <= 13) return `${day}th`;
 
+    switch (day % 10) {
+        case 1:
+            return `${day}st`;
+        case 2:
+            return `${day}nd`;
+        case 3:
+            return `${day}rd`;
+        default:
+            return `${day}th`;
+    }
+}
+
+function formatDateLabel(dateKey) {
     const date = new Date(`${dateKey}T12:00:00`);
     if (Number.isNaN(date.getTime())) return dateKey;
 
+    const month = new Intl.DateTimeFormat(undefined, { month: "long" }).format(date);
+    return `${month} ${getOrdinal(date.getDate())} ${date.getFullYear()}`;
+}
+
+function formatTimeLabel(dateValue) {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "";
+
     return new Intl.DateTimeFormat(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric"
+        hour: "numeric",
+        minute: "2-digit"
     }).format(date);
+}
+
+function parseSetSummary(summary) {
+    const match = String(summary).trim().match(/^(.+?)\s*x\s*(.+)$/i);
+    if (!match) return null;
+
+    return {
+        weight: match[1].trim(),
+        reps: match[2].trim().replace(/^\((.*)\)$/, "$1")
+    };
+}
+
+function formatSet(weight, reps) {
+    return `${weight}x${reps}`;
+}
+
+function formatGroupedSetSummary(summary) {
+    const parsed = parseSetSummary(summary);
+    if (!parsed || !parsed.reps.includes(",")) return String(summary);
+
+    const reps = parsed.reps.split(",").map(rep => rep.trim()).join(", ");
+    return `${parsed.weight}x(${reps})`;
 }
 
 function normalizeSet(set, index = 0) {
     if (typeof set === "string") {
-        return { summary: set, order: index };
+        const parsed = parseSetSummary(set);
+        return parsed && !parsed.reps.includes(",")
+            ? { ...parsed, summary: formatSet(parsed.weight, parsed.reps), order: index }
+            : { summary: formatGroupedSetSummary(set), order: index };
     }
 
     if (!set || typeof set !== "object") {
@@ -136,7 +188,7 @@ function normalizeSet(set, index = 0) {
         loggedAt,
         order: Number.isFinite(order) ? order : index,
         summary: weight !== undefined && reps !== undefined
-            ? `${weight} lb x ${reps}`
+            ? formatSet(weight, reps)
             : set.summary ?? set.sets ?? String(set)
     };
 }
@@ -165,7 +217,10 @@ function normalizeBackendPerformances(data) {
 
         candidates.forEach((item, index) => {
             const performance = normalizePerformance(item, index);
-            if (performance && item?.sets !== undefined) {
+            if (
+                performance &&
+                (item?.sets !== undefined || item?.Sets !== undefined || item?.entries !== undefined || item?.setList !== undefined)
+            ) {
                 grouped.set(performance.dateKey, performance);
                 return;
             }
@@ -198,18 +253,55 @@ function getLocalPerformances(exercise) {
     return Array.from(grouped.values());
 }
 
-function mergePerformances(backendPerformances, localPerformances) {
-    const todayKey = getDateKey(new Date());
-    const grouped = new Map();
+function sortSetsChronologically(sets) {
+    return [...sets].sort((a, b) => {
+        const aTime = a.loggedAt ? new Date(a.loggedAt).getTime() : NaN;
+        const bTime = b.loggedAt ? new Date(b.loggedAt).getTime() : NaN;
 
-    backendPerformances.forEach(performance => {
-        grouped.set(performance.dateKey, { ...performance, sets: [...performance.sets] });
+        if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+            return aTime - bTime;
+        }
+
+        return a.order - b.order;
+    });
+}
+
+function summarizeConsecutiveSets(sets) {
+    const groups = [];
+
+    sortSetsChronologically(sets).forEach(set => {
+        const weight = set.weight;
+        const reps = set.reps;
+
+        if (weight === undefined || reps === undefined) {
+            groups.push({ summary: set.summary });
+            return;
+        }
+
+        const previous = groups[groups.length - 1];
+        if (previous && previous.weight === String(weight) && !previous.summary) {
+            previous.reps.push(String(reps));
+            return;
+        }
+
+        groups.push({ weight: String(weight), reps: [String(reps)] });
     });
 
-    localPerformances.forEach(performance => {
-        const existing = grouped.get(performance.dateKey);
+    return groups.map(group => {
+        if (group.summary) return group.summary;
+        if (group.reps.length === 1) return formatSet(group.weight, group.reps[0]);
+        return `${group.weight}x(${group.reps.join(", ")})`;
+    }).join(", ");
+}
 
-        if (!existing || performance.dateKey === todayKey) {
+function getHistoricalPerformances(backendPerformances, localPerformances, todayKey = getDateKey(new Date())) {
+    const grouped = new Map();
+
+    [...backendPerformances, ...localPerformances].forEach(performance => {
+        if (!performance || performance.dateKey === todayKey) return;
+
+        const existing = grouped.get(performance.dateKey);
+        if (!existing) {
             grouped.set(performance.dateKey, { ...performance, sets: [...performance.sets] });
             return;
         }
@@ -219,33 +311,97 @@ function mergePerformances(backendPerformances, localPerformances) {
 
     return Array.from(grouped.values())
         .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
-        .slice(0, PERFORMANCE_LIMIT)
+        .slice(0, HISTORY_LIMIT)
         .map(performance => ({
             ...performance,
-            sets: performance.sets.sort((a, b) => {
-                const aTime = a.loggedAt ? new Date(a.loggedAt).getTime() : NaN;
-                const bTime = b.loggedAt ? new Date(b.loggedAt).getTime() : NaN;
-
-                if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
-                    return aTime - bTime;
-                }
-
-                return a.order - b.order;
-            })
+            sets: sortSetsChronologically(performance.sets),
+            summary: summarizeConsecutiveSets(performance.sets)
         }));
 }
 
-function formatPerformances(exercise, performances) {
-    if (!performances.length) {
-        return `No recent performance for ${exercise}.`;
+function getTodaySets(localPerformances, todayKey = getDateKey(new Date())) {
+    const today = localPerformances.find(performance => performance.dateKey === todayKey);
+    if (!today) return [];
+
+    return sortSetsChronologically(today.sets).reverse();
+}
+
+function getPerformanceSummary(backendData, localPerformances, todayKey = getDateKey(new Date())) {
+    const backendPerformances = normalizeBackendPerformances(backendData);
+
+    return {
+        todaySets: getTodaySets(localPerformances, todayKey),
+        history: getHistoricalPerformances(backendPerformances, localPerformances, todayKey)
+    };
+}
+
+function buildSummaryNode(exercise, summary) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "performance-summary";
+
+    if (summary.todaySets.length) {
+        const todaySection = document.createElement("section");
+        todaySection.className = "performance-block";
+
+        const title = document.createElement("h2");
+        title.textContent = "Today";
+        todaySection.append(title);
+
+        const todayList = document.createElement("div");
+        todayList.className = "today-set-list";
+
+        summary.todaySets.forEach(set => {
+            const row = document.createElement("div");
+            row.className = "today-set";
+
+            const lift = document.createElement("strong");
+            lift.textContent = set.summary;
+
+            const time = document.createElement("span");
+            const timeLabel = formatTimeLabel(set.loggedAt);
+            time.textContent = timeLabel ? `at ${timeLabel}` : "";
+
+            row.append(lift, time);
+            todayList.append(row);
+        });
+
+        todaySection.append(todayList);
+        wrapper.append(todaySection);
     }
 
-    const lines = performances.map(performance => {
-        const setSummary = performance.sets.map(set => set.summary).join(", ");
-        return `${formatDateLabel(performance.dateKey)}: ${setSummary}`;
-    });
+    if (summary.history.length) {
+        const historySection = document.createElement("section");
+        historySection.className = "performance-block";
 
-    return `Last ${performances.length} for ${exercise}:\n${lines.join("\n")}`;
+        const title = document.createElement("h2");
+        title.textContent = `Last ${summary.history.length} performances`;
+        historySection.append(title);
+
+        summary.history.forEach(performance => {
+            const line = document.createElement("p");
+            line.className = "performance-line";
+
+            const date = document.createElement("strong");
+            date.textContent = formatDateLabel(performance.dateKey);
+
+            const sets = document.createElement("span");
+            sets.textContent = performance.summary;
+
+            line.append(date, sets);
+            historySection.append(line);
+        });
+
+        wrapper.append(historySection);
+    }
+
+    if (!summary.todaySets.length && !summary.history.length) {
+        const empty = document.createElement("p");
+        empty.className = "performance-empty";
+        empty.textContent = `No recent performance for ${exercise}.`;
+        wrapper.append(empty);
+    }
+
+    return wrapper;
 }
 
 function populateExercises(group, selectedExercise = "") {
@@ -265,37 +421,32 @@ function populateExercises(group, selectedExercise = "") {
 
 async function fetchLastWorkout(exercise) {
     if (!exercise) {
-        setLastWorkout("Pick an exercise to see last performance.");
+        setLastWorkout("Pick an exercise to see recent performances.");
         return;
     }
 
-    const localSet = getLastLocalSet(exercise);
     const localPerformances = getLocalPerformances(exercise);
-    const localSummary = mergePerformances([], localPerformances);
-    let fallbackText = `No recent local set for ${exercise}.`;
-
-    if (localSummary.length) {
-        fallbackText = formatPerformances(exercise, localSummary);
-    } else if (localSet) {
-        fallbackText = `Last local set: ${localSet.weight} lb x ${localSet.reps}`;
-    }
+    const fallbackSummary = getPerformanceSummary(null, localPerformances);
+    const showFallback = state => {
+        setLastWorkoutNode(buildSummaryNode(exercise, fallbackSummary), state);
+    };
 
     setLastWorkout("Fetching recent performances...", "loading");
 
     try {
-        const response = await fetch(`${API_URL}?exercise=${encodeURIComponent(exercise)}&limit=${PERFORMANCE_LIMIT}`);
+        const response = await fetch(`${API_URL}?exercise=${encodeURIComponent(exercise)}&limit=${HISTORY_LIMIT}&history=1`);
         const data = await response.json();
-        const performances = mergePerformances(normalizeBackendPerformances(data), localPerformances);
+        const summary = getPerformanceSummary(data, localPerformances);
 
-        if (performances.length) {
-            setLastWorkout(formatPerformances(exercise, performances), "ready");
+        if (summary.todaySets.length || summary.history.length) {
+            setLastWorkoutNode(buildSummaryNode(exercise, summary), "ready");
             return;
         }
 
-        setLastWorkout(fallbackText, localSet ? "ready" : "empty");
+        showFallback("empty");
     } catch (error) {
         console.error("Error fetching workout data:", error);
-        setLastWorkout(fallbackText, localSet ? "ready" : "error");
+        showFallback(fallbackSummary.todaySets.length || fallbackSummary.history.length ? "ready" : "error");
     }
 }
 
@@ -367,7 +518,7 @@ function wireWorkoutPage() {
             rememberExercise(selectedGroup, exercise);
             rememberLoggedSet(exercise, { reps, weight, date: loggedAt, group: selectedGroup });
             populateExercises(selectedGroup, exercise);
-            setStatus(`Logged ${weight} lb x ${reps}.`, "success");
+            setStatus(`Logged ${formatSet(weight, reps)}.`, "success");
             fetchLastWorkout(exercise);
         } catch (error) {
             console.error("Error logging workout:", error);
@@ -381,9 +532,36 @@ function wireWorkoutPage() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    wireSplitPage();
-    wireWorkoutPage();
-});
+if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", () => {
+        wireSplitPage();
+        wireWorkoutPage();
+    });
+}
 
-window.selectWorkout = selectWorkout;
+if (typeof window !== "undefined") {
+    window.selectWorkout = selectWorkout;
+    window.__pumpLoggerTest = {
+        formatDateLabel,
+        formatTimeLabel,
+        getHistoricalPerformances,
+        getPerformanceSummary,
+        getTodaySets,
+        normalizeBackendPerformances,
+        normalizeSet,
+        summarizeConsecutiveSets
+    };
+}
+
+if (typeof module !== "undefined") {
+    module.exports = {
+        formatDateLabel,
+        formatTimeLabel,
+        getHistoricalPerformances,
+        getPerformanceSummary,
+        getTodaySets,
+        normalizeBackendPerformances,
+        normalizeSet,
+        summarizeConsecutiveSets
+    };
+}

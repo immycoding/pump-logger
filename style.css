@@ -213,7 +213,7 @@ input:focus {
 
 .last-workout {
     min-height: 54px;
-    padding: 13px 14px;
+    padding: 14px;
     background: #f3f3ee;
     color: var(--muted);
     border: 1px solid var(--line);
@@ -225,6 +225,85 @@ input:focus {
 
 .last-workout[data-state="ready"] {
     color: var(--text);
+}
+
+.performance-summary {
+    display: grid;
+    gap: 14px;
+    white-space: normal;
+}
+
+.performance-block {
+    display: grid;
+    gap: 8px;
+}
+
+.performance-block h2 {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.today-set-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.today-set {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.today-set strong {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.today-set span {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.performance-line {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding: 0 0 9px;
+    border-bottom: 1px solid rgba(217, 217, 210, 0.85);
+}
+
+.performance-line:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.performance-line strong {
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.performance-line span,
+.performance-empty {
+    color: var(--text);
+    font-size: 0.94rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.performance-empty {
+    margin: 0;
 }
 
 .last-workout[data-state="loading"]::after {
