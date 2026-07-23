@@ -266,6 +266,28 @@ function sortSetsChronologically(sets) {
     });
 }
 
+function getSetIdentity(set) {
+    const timestamp = set.loggedAt ? new Date(set.loggedAt).getTime() : NaN;
+    if (!Number.isFinite(timestamp) || set.weight === undefined || set.reps === undefined) {
+        return null;
+    }
+
+    return `${timestamp}|${String(set.weight)}|${String(set.reps)}`;
+}
+
+function deduplicateSets(sets) {
+    const identities = new Set();
+
+    return sets.filter(set => {
+        const identity = getSetIdentity(set);
+        if (!identity) return true;
+        if (identities.has(identity)) return false;
+
+        identities.add(identity);
+        return true;
+    });
+}
+
 function summarizeConsecutiveSets(sets) {
     const groups = [];
 
@@ -312,11 +334,15 @@ function getHistoricalPerformances(backendPerformances, localPerformances, today
     return Array.from(grouped.values())
         .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
         .slice(0, HISTORY_LIMIT)
-        .map(performance => ({
-            ...performance,
-            sets: sortSetsChronologically(performance.sets),
-            summary: summarizeConsecutiveSets(performance.sets)
-        }));
+        .map(performance => {
+            const sets = sortSetsChronologically(deduplicateSets(performance.sets));
+
+            return {
+                ...performance,
+                sets,
+                summary: summarizeConsecutiveSets(sets)
+            };
+        });
 }
 
 function getTodaySets(localPerformances, todayKey = getDateKey(new Date())) {
@@ -518,7 +544,7 @@ function wireWorkoutPage() {
             rememberExercise(selectedGroup, exercise);
             rememberLoggedSet(exercise, { reps, weight, date: loggedAt, group: selectedGroup });
             populateExercises(selectedGroup, exercise);
-            setStatus(`Logged ${formatSet(weight, reps)}.`, "success");
+            setStatus("");
             fetchLastWorkout(exercise);
         } catch (error) {
             console.error("Error logging workout:", error);
@@ -549,6 +575,7 @@ if (typeof window !== "undefined") {
         getTodaySets,
         normalizeBackendPerformances,
         normalizeSet,
+        deduplicateSets,
         summarizeConsecutiveSets
     };
 }
@@ -562,6 +589,7 @@ if (typeof module !== "undefined") {
         getTodaySets,
         normalizeBackendPerformances,
         normalizeSet,
+        deduplicateSets,
         summarizeConsecutiveSets
     };
 }

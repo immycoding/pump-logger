@@ -69,4 +69,15 @@ const liveHistory = getHistoricalPerformances(normalizeBackendPerformances(liveP
 assert.strictEqual(liveHistory[0].dateKey, "2026-07-11");
 assert.strictEqual(liveHistory[0].summary, "165x(5, 5, 5, 5, 5)");
 
+const supersetSquatSets = Array.from({ length: 5 }, (_, index) =>
+    set(315, 8 - index, `2026-07-10T18:${String(index * 2).padStart(2, "0")}:00-05:00`, index * 2)
+);
+const duplicatedSupersetHistory = getHistoricalPerformances(
+    [{ dateKey: "2026-07-10", sets: supersetSquatSets }],
+    [{ dateKey: "2026-07-10", sets: supersetSquatSets.map(item => ({ ...item })) }],
+    todayKey
+);
+assert.strictEqual(duplicatedSupersetHistory[0].sets.length, 5);
+assert.strictEqual(duplicatedSupersetHistory[0].summary, "315x(8, 7, 6, 5, 4)");
+
 console.log("QA summary tests passed");
